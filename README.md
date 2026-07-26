@@ -1,9 +1,23 @@
-# Camp Mawingu Map — Lean Monochrome Version
+# Camp Mawingu Map — Refined Monochrome Version
 
-This version uses the monochrome map style and a simplified popup containing only:
+This version includes the requested refinements:
 
-- Camp Mawingu
-- Ngong, Kenya
-- Open in Google Maps
+- locality and city labels hidden
+- roads and administrative boundaries retained
+- slightly closer final zoom
+- centrally positioned Camp Mawingu marker
+- smaller popup
+- zoom controls only
+- 20 px iframe corner radius
 
-Replace the existing files in the GitHub repository root with the files in this package.
+## Upload to GitHub
+
+Unzip this package and replace the existing files in the repository root:
+
+- `index.html`
+- `interact-iframe.html`
+- `README.md`
+
+GitHub Pages URL:
+
+`https://danmangoldon.github.io/camp-mawingu-map/`
