@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#000000">
+  <title>Camp Mawingu Location</title>
+
+  <link
+    href="https://api.mapbox.com/mapbox-gl-js/v3.25.0/mapbox-gl.css"
+    rel="stylesheet"
+  >
+
+  <style>
+    :root {
+      color-scheme: light;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #e9e9e9;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    .mapboxgl-canvas {
+      outline: none;
+    }
+
+    .mapboxgl-ctrl-group {
+      overflow: hidden;
+      border: 0;
+      border-radius: 12px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+    }
+
+    .camp-marker {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 4px solid #ffffff;
+      border-radius: 50%;
+      background: #000000;
+      box-shadow: 0 5px 18px rgba(0, 0, 0, 0.42);
+      cursor: pointer;
+    }
+
+    .camp-marker::after {
+      position: absolute;
+      inset: -11px;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+      content: "";
+      animation: pulse 2.4s ease-out infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 0.9;
+        transform: scale(0.6);
+      }
+      80%,
+      100% {
+        opacity: 0;
+        transform: scale(1.5);
+      }
+    }
+
+    .mapboxgl-popup-content {
+      min-width: 210px;
+      padding: 18px 19px;
+      border-radius: 14px;
+      box-shadow: 0 10px 36px rgba(0, 0, 0, 0.24);
+    }
+
+    .mapboxgl-popup-close-button {
+      top: 5px;
+      right: 7px;
+      width: 28px;
+      height: 28px;
+      color: #555555;
+      font-size: 21px;
+    }
+
+    .popup-kicker {
+      margin: 0 0 5px;
+      color: #666666;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .popup-title {
+      margin: 0 0 4px;
+      color: #000000;
+      font-size: 21px;
+      font-weight: 750;
+      line-height: 1.15;
+    }
+
+    .popup-location {
+      margin: 0 0 15px;
+      color: #444444;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .popup-link {
+      color: #000000;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .map-label {
+      position: absolute;
+      z-index: 2;
+      bottom: 22px;
+      left: 22px;
+      max-width: calc(100% - 44px);
+      padding: 13px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 14px;
+      color: #ffffff;
+      background: rgba(0, 0, 0, 0.68);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(12px);
+    }
+
+    .map-label strong {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 16px;
+    }
+
+    .map-label span {
+      font-size: 13px;
+      opacity: 0.82;
+    }
+
+    @media (max-width: 640px) {
+      .map-label {
+        right: 14px;
+        bottom: 14px;
+        left: 14px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .camp-marker::after {
+        animation: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map" aria-label="Interactive satellite map showing Camp Mawingu"></div>
+
+  <div class="map-label" aria-hidden="true">
+    <strong>Camp Mawingu</strong>
+    <span>Ngong, Kenya</span>
+  </div>
+
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.25.0/mapbox-gl.js"></script>
+  <script>
+    const accessToken = "pk.eyJ1IjoiZG1hbmdvbGQiLCJhIjoiY21zMjFybm91MGFrbzJ3c2ExeWc0MmFicyJ9.VwA1NgRTj7U_dGfezWZdeA";
+    const campCoordinates = [36.67102154233, -1.3668933792826428];
+    const googleMapsUrl =
+      "https://www.google.com/maps?q=-1.3668933792826428,36.67102154233";
+
+    const reduceMotion =
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const map = new mapboxgl.Map({
+      accessToken,
+      container: "map",
+      style: "mapbox://styles/mapbox/standard-satellite",
+      config: {
+        basemap: {
+          showPedestrianRoads: false,
+          showPlaceLabels: true,
+          showPointOfInterestLabels: false,
+          showRoadLabels: false,
+          showTransitLabels: false,
+          showAdminBoundaries: true,
+          showRoadsAndTransit: false
+        }
+      },
+      center: [20, 5],
+      zoom: 1.7,
+      pitch: 0,
+      bearing: 0,
+      projection: "globe",
+      attributionControl: true,
+      antialias: true
+    });
+
+    map.addControl(
+      new mapboxgl.NavigationControl({
+        visualizePitch: true
+      }),
+      "top-right"
+    );
+
+    const popup = new mapboxgl.Popup({
+      offset: 22,
+      closeButton: true,
+      closeOnClick: false
+    }).setHTML(`
+      <p class="popup-kicker">Cloud Camp</p>
+      <h2 class="popup-title">Camp Mawingu</h2>
+      <p class="popup-location">Ngong, Kenya</p>
+      <a
+        class="popup-link"
+        href="${googleMapsUrl}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Open in Google Maps →
+      </a>
+    `);
+
+    const markerElement = document.createElement("button");
+    markerElement.className = "camp-marker";
+    markerElement.type = "button";
+    markerElement.setAttribute("aria-label", "Open Camp Mawingu location details");
+
+    new mapboxgl.Marker({
+      element: markerElement,
+      anchor: "center"
+    })
+      .setLngLat(campCoordinates)
+      .setPopup(popup)
+      .addTo(map);
+
+    markerElement.addEventListener("click", () => {
+      map.easeTo({
+        center: campCoordinates,
+        zoom: Math.max(map.getZoom(), 15.4),
+        pitch: 62,
+        bearing: 30,
+        duration: reduceMotion ? 0 : 1500
+      });
+    });
+
+    map.on("style.load", () => {
+      map.addSource("mapbox-dem", {
+        type: "raster-dem",
+        url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+        tileSize: 512,
+        maxzoom: 14
+      });
+
+      map.setTerrain({
+        source: "mapbox-dem",
+        exaggeration: 1.35
+      });
+
+      if (reduceMotion) {
+        map.jumpTo({
+          center: campCoordinates,
+          zoom: 15.4,
+          pitch: 55,
+          bearing: 25
+        });
+        popup.setLngLat(campCoordinates).addTo(map);
+        return;
+      }
+
+      map.flyTo({
+        center: [37.9, 0.1],
+        zoom: 4.5,
+        pitch: 25,
+        bearing: -8,
+        duration: 3200,
+        essential: true
+      });
+
+      window.setTimeout(() => {
+        map.flyTo({
+          center: campCoordinates,
+          zoom: 15.4,
+          pitch: 62,
+          bearing: 28,
+          duration: 5200,
+          curve: 1.25,
+          speed: 0.72,
+          essential: true
+        });
+      }, 3300);
+
+      window.setTimeout(() => {
+        popup.setLngLat(campCoordinates).addTo(map);
+      }, 8750);
+    });
+  </script>
+</body>
+</html>
