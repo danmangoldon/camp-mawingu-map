@@ -1,42 +1,45 @@
+
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="theme-color" content="#f3f3f3">
-  <title>Camp Mawingu Location</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f1f1f1">
+  <title>Camp Mawingu | Interactive Location Map</title>
 
-  <link
-    href="https://api.mapbox.com/mapbox-gl-js/v3.25.0/mapbox-gl.css"
-    rel="stylesheet"
-  >
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.25.0/mapbox-gl.css">
 
   <style>
-    html,
-    body {
+    :root {
+      color-scheme: light;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
       width: 100%;
       height: 100%;
       margin: 0;
       overflow: hidden;
       background: #f1f1f1;
-      font-family: Arial, Helvetica, sans-serif;
     }
 
     #map {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
     }
 
-    .mapboxgl-canvas {
-      outline: none;
-    }
+    .mapboxgl-canvas { outline: none; }
 
     .mapboxgl-ctrl-group {
       overflow: hidden;
       border: 1px solid #dddddd;
       border-radius: 13px;
-      background: rgba(255, 255, 255, 0.95);
-      box-shadow: 0 3px 14px rgba(0, 0, 0, 0.12);
+      background: rgba(255, 255, 255, .96);
+      box-shadow: 0 3px 14px rgba(0, 0, 0, .12);
     }
 
     .mapboxgl-ctrl button {
@@ -44,22 +47,69 @@
       height: 42px;
     }
 
+    .map-actions {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 5;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      max-width: calc(100% - 85px);
+    }
+
+    .map-action {
+      appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 39px;
+      padding: 9px 13px;
+      border: 1px solid #dedede;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .97);
+      color: #161616;
+      box-shadow: 0 3px 15px rgba(0, 0, 0, .11);
+      font: 700 12px/1.2 Arial, Helvetica, sans-serif;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .map-action:hover:not(:disabled) {
+      background: #f4f4f4;
+    }
+
+    .map-action:focus-visible,
+    .camp-marker:focus-visible {
+      outline: 3px solid #1676da;
+      outline-offset: 3px;
+    }
+
+    .map-action:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    [hidden] { display: none !important; }
+
     .camp-marker {
       position: relative;
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       padding: 0;
       border: 4px solid #ffffff;
       border-radius: 50%;
       background: #009b72;
-      box-shadow: 0 2px 9px rgba(0, 0, 0, 0.30);
+      box-shadow: 0 2px 9px rgba(0, 0, 0, .30);
       cursor: pointer;
     }
 
     .camp-marker::after {
       position: absolute;
-      inset: -9px;
-      border: 1px solid rgba(0, 155, 114, 0.42);
+      inset: -10px;
+      border: 1px solid rgba(0, 155, 114, .42);
       border-radius: 50%;
       content: "";
       animation: pulse 2.5s ease-out infinite;
@@ -67,11 +117,11 @@
 
     @keyframes pulse {
       0% {
-        opacity: 0.85;
-        transform: scale(0.55);
+        opacity: .85;
+        transform: scale(.55);
       }
-      85%,
-      100% {
+
+      85%, 100% {
         opacity: 0;
         transform: scale(1.6);
       }
@@ -84,7 +134,7 @@
       border-radius: 13px;
       color: #111111;
       background: #ffffff;
-      box-shadow: 0 9px 32px rgba(0, 0, 0, 0.18);
+      box-shadow: 0 9px 32px rgba(0, 0, 0, .18);
     }
 
     .mapboxgl-popup-close-button {
@@ -98,13 +148,13 @@
 
     .popup-title {
       margin: 0 0 4px;
-      font-size: 20px;
-      font-weight: 750;
-      line-height: 1.15;
+      font-size: 19px;
+      font-weight: 700;
+      line-height: 1.2;
     }
 
     .popup-location {
-      margin: 0 0 14px;
+      margin: 0 0 13px;
       color: #4d4d4d;
       font-size: 13px;
     }
@@ -117,140 +167,475 @@
       text-underline-offset: 3px;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      .camp-marker::after {
-        animation: none;
+    .map-status {
+      position: absolute;
+      left: 50%;
+      bottom: 16px;
+      z-index: 6;
+      max-width: calc(100% - 30px);
+      padding: 10px 15px;
+      transform: translateX(-50%);
+      border: 1px solid #e1e1e1;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .97);
+      color: #333333;
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: center;
+      box-shadow: 0 3px 12px rgba(0,0,0,.10);
+    }
+
+    .map-status a { color: inherit; }
+
+    @media (max-width: 460px) {
+      .map-actions {
+        top: 10px;
+        left: 10px;
+        gap: 6px;
       }
+
+      .map-action {
+        min-height: 38px;
+        padding: 8px 11px;
+        font-size: 11px;
+      }
+
+      .mapboxgl-ctrl button {
+        width: 38px;
+        height: 38px;
+      }
+
+      .mapboxgl-popup-content {
+        min-width: 155px;
+        padding: 12px 14px;
+      }
+
+      .popup-title { font-size: 17px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .camp-marker::after { animation: none; }
     }
   </style>
 </head>
-
 <body>
-  <div id="map" aria-label="Interactive map showing Camp Mawingu in Ngong, Kenya"></div>
+  <div
+    id="map"
+    role="region"
+    aria-label="Interactive map showing Camp Mawingu in Ngong, Kenya"
+  ></div>
+
+  <div class="map-actions" aria-label="Map controls">
+    <button
+      id="replayTour"
+      class="map-action"
+      type="button"
+      disabled
+      aria-label="Replay the globe-to-camp animation"
+    >
+      &#8635; Replay tour
+    </button>
+
+    <button
+      id="skipTour"
+      class="map-action"
+      type="button"
+      hidden
+    >
+      Skip to camp &#8594;
+    </button>
+  </div>
+
+  <div
+    id="mapStatus"
+    class="map-status"
+    role="status"
+    aria-live="polite"
+  >
+    Loading interactive map…
+  </div>
+
+  <noscript>
+    <p style="position:absolute;bottom:12px;left:12px;padding:12px;background:white;z-index:9;">
+      JavaScript is required for the interactive map.
+      <a href="https://www.google.com/maps?q=-1.3668933792826428,36.67102154233">
+        Open Camp Mawingu in Google Maps
+      </a>.
+    </p>
+  </noscript>
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.25.0/mapbox-gl.js"></script>
+
   <script>
-    mapboxgl.accessToken = "pk.eyJ1IjoiZG1hbmdvbGQiLCJhIjoiY21zMjFybm91MGFrbzJ3c2ExeWc0MmFicyJ9.VwA1NgRTj7U_dGfezWZdeA";
+    (() => {
+      "use strict";
 
-    const campCoordinates = [36.67102154233, -1.3668933792826428];
-    const googleMapsUrl =
-      "https://www.google.com/maps?q=-1.3668933792826428,36.67102154233";
-
-    const reduceMotion =
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    const map = new mapboxgl.Map({
-      container: "map",
-      style: "mapbox://styles/mapbox/light-v11",
-      center: [20, 8],
-      zoom: 2.1,
-      pitch: 0,
-      bearing: 0,
-      attributionControl: true,
-      antialias: true
-    });
-
-    map.addControl(
-      new mapboxgl.NavigationControl({
-        showCompass: false,
-        showZoom: true
-      }),
-      "top-right"
-    );
-
-    const popup = new mapboxgl.Popup({
-      offset: 18,
-      closeButton: true,
-      closeOnClick: false,
-      maxWidth: "260px"
-    }).setHTML(`
-      <h2 class="popup-title">Camp Mawingu</h2>
-      <p class="popup-location">Ngong, Kenya</p>
-      <a
-        class="popup-link"
-        href="${googleMapsUrl}"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Open in Google Maps →
-      </a>
-    `);
-
-    const markerElement = document.createElement("button");
-    markerElement.className = "camp-marker";
-    markerElement.type = "button";
-    markerElement.setAttribute("aria-label", "Open Camp Mawingu location details");
-
-    new mapboxgl.Marker({
-      element: markerElement,
-      anchor: "center"
-    })
-      .setLngLat(campCoordinates)
-      .setPopup(popup)
-      .addTo(map);
-
-    map.on("load", () => {
-      // Remove city, locality, POI and transit labels while retaining roads
-      // and administrative boundaries for geographic context.
-      const hiddenLabelPatterns = [
-        /settlement/i,
-        /place-label/i,
-        /country-label/i,
-        /state-label/i,
-        /poi-label/i,
-        /airport-label/i,
-        /transit-label/i,
+      const campCoordinates = [
+        36.67102154233,
+        -1.3668933792826428
       ];
 
-      for (const layer of map.getStyle().layers || []) {
-        if (
-          layer.type === "symbol" &&
-          hiddenLabelPatterns.some((pattern) => pattern.test(layer.id))
-        ) {
-          map.setLayoutProperty(layer.id, "visibility", "none");
-        }
+      const googleMapsUrl =
+        "https://www.google.com/maps?q=-1.3668933792826428,36.67102154233";
+
+      const worldView = {
+        center: [16, 10],
+        zoom: 1.35,
+        pitch: 0,
+        bearing: 0
+      };
+
+      const campView = {
+        center: campCoordinates,
+        zoom: 13.25,
+        pitch: 0,
+        bearing: 0
+      };
+
+      const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+      const replayButton = document.getElementById("replayTour");
+      const skipButton = document.getElementById("skipTour");
+      const status = document.getElementById("mapStatus");
+      const mapElement = document.getElementById("map");
+
+      let map;
+      let popup;
+      let ready = false;
+      let started = false;
+      let sequenceId = 0;
+      let visibilityObserver;
+      let resizeObserver;
+
+      function showMessage(message) {
+        status.textContent = message;
+        status.hidden = false;
       }
 
-      if (reduceMotion) {
-        map.jumpTo({
-          center: campCoordinates,
-          zoom: 13.25
-        });
-        popup.setLngLat(campCoordinates).addTo(map);
+      function hideMessage() {
+        status.hidden = true;
+      }
+
+      function showFailure() {
+        status.innerHTML =
+          "The interactive map is unavailable. " +
+          `<a href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer">Open directions in Google Maps &#8599;</a>`;
+
+        status.hidden = false;
+      }
+
+      if (!window.mapboxgl || !mapboxgl.supported()) {
+        showFailure();
         return;
       }
 
-      map.flyTo({
-        center: [37.5, 0.5],
-        zoom: 5.2,
-        duration: 2800,
-        curve: 1.25,
-        essential: true
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoiZG1hbmdvbGQiLCJhIjoiY21zMjFybm91MGFrbzJ3c2ExeWc0MmFicyJ9.VwA1NgRTj7U_dGfezWZdeA";
+
+      map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/mapbox/light-v11",
+        projection: "globe",
+        ...worldView,
+        attributionControl: true,
+        antialias: true
       });
 
-      window.setTimeout(() => {
-        map.flyTo({
-          center: campCoordinates,
-          zoom: 13.25,
-          duration: 3900,
-          curve: 1.3,
-          speed: 0.75,
+      map.addControl(
+        new mapboxgl.NavigationControl({
+          showCompass: false,
+          showZoom: true
+        }),
+        "top-right"
+      );
+
+      popup = new mapboxgl.Popup({
+        offset: 18,
+        closeButton: true,
+        closeOnClick: false,
+        maxWidth: "260px"
+      }).setHTML(`
+        <h2 class="popup-title">Camp Mawingu</h2>
+        <p class="popup-location">Ngong, Kenya</p>
+        <a
+          class="popup-link"
+          href="${googleMapsUrl}"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Open in Google Maps &#8594;
+        </a>
+      `);
+
+      const markerElement = document.createElement("button");
+
+      markerElement.type = "button";
+      markerElement.className = "camp-marker";
+      markerElement.setAttribute(
+        "aria-label",
+        "Show Camp Mawingu location details"
+      );
+
+      new mapboxgl.Marker({
+        element: markerElement,
+        anchor: "center"
+      })
+        .setLngLat(campCoordinates)
+        .setPopup(popup)
+        .addTo(map);
+
+      markerElement.addEventListener("click", () => {
+        if (!ready) return;
+
+        if (!prefersReducedMotion) {
+          map.easeTo({
+            center: campCoordinates,
+            zoom: Math.max(map.getZoom(), 13.8),
+            duration: 850
+          });
+        }
+      });
+
+      function showCampImmediately() {
+        // Cancel any earlier animation sequence.
+        sequenceId += 1;
+
+        map.stop();
+        map.jumpTo(campView);
+
+        popup.setLngLat(campCoordinates).addTo(map);
+
+        replayButton.disabled = false;
+        skipButton.hidden = true;
+
+        hideMessage();
+      }
+
+      function flyStage(options) {
+        return new Promise((resolve) => {
+          map.once("moveend", resolve);
+          map.flyTo(options);
+        });
+      }
+
+      async function playTour() {
+        if (!ready) return;
+
+        started = true;
+
+        const thisSequence = ++sequenceId;
+
+        map.stop();
+        popup.remove();
+
+        map.setProjection("globe");
+        map.resize();
+        map.jumpTo(worldView);
+
+        if (prefersReducedMotion) {
+          showCampImmediately();
+          return;
+        }
+
+        replayButton.disabled = true;
+        skipButton.hidden = false;
+
+        hideMessage();
+
+        // Show the full globe briefly before moving.
+        await new Promise((resolve) =>
+          window.setTimeout(resolve, 650)
+        );
+
+        if (thisSequence !== sequenceId) return;
+
+        // Stage 1: Globe towards East Africa.
+        await flyStage({
+          center: [35, 2.5],
+          zoom: 4.4,
+          pitch: 0,
+          bearing: 0,
+          duration: 2600,
+          curve: 1.25,
           essential: true
         });
-      }, 2900);
 
-      window.setTimeout(() => {
+        if (thisSequence !== sequenceId) return;
+
+        // Stage 2: East Africa towards Camp Mawingu.
+        await flyStage({
+          ...campView,
+          duration: 4100,
+          curve: 1.3,
+          essential: true
+        });
+
+        if (thisSequence !== sequenceId) return;
+
+        // Show camp details after the camera arrives.
         popup.setLngLat(campCoordinates).addTo(map);
-      }, 7000);
-    });
 
-    markerElement.addEventListener("click", () => {
-      map.easeTo({
-        center: campCoordinates,
-        zoom: Math.max(map.getZoom(), 14.0),
-        duration: reduceMotion ? 0 : 1200
+        replayButton.disabled = false;
+        skipButton.hidden = true;
+      }
+
+      function startWhenVisible() {
+        if (
+          !ready ||
+          started ||
+          document.visibilityState === "hidden"
+        ) {
+          return;
+        }
+
+        playTour();
+
+        if (visibilityObserver) {
+          visibilityObserver.disconnect();
+        }
+      }
+
+      function watchVisibility() {
+        // Detect when the map becomes visible.
+        // In an iframe, browser support may vary.
+        if (!("IntersectionObserver" in window)) {
+          startWhenVisible();
+          return;
+        }
+
+        visibilityObserver = new IntersectionObserver(
+          (entries) => {
+            const visible = entries.some(
+              (entry) =>
+                entry.isIntersecting &&
+                entry.intersectionRatio >= 0.25
+            );
+
+            if (visible) {
+              startWhenVisible();
+            }
+          },
+          {
+            threshold: [0, 0.1, 0.25, 0.5]
+          }
+        );
+
+        visibilityObserver.observe(mapElement);
+      }
+
+      replayButton.addEventListener("click", () => {
+        if (!ready) return;
+
+        if (visibilityObserver) {
+          visibilityObserver.disconnect();
+        }
+
+        playTour();
       });
-    });
+
+      skipButton.addEventListener("click", () => {
+        if (!ready) return;
+
+        started = true;
+
+        if (visibilityObserver) {
+          visibilityObserver.disconnect();
+        }
+
+        showCampImmediately();
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (
+          document.visibilityState === "visible" &&
+          ready &&
+          !started
+        ) {
+          if (!visibilityObserver) {
+            watchVisibility();
+          }
+        }
+      });
+
+      map.on("load", () => {
+        ready = true;
+        replayButton.disabled = false;
+
+        showMessage(
+          "Move down to the map to begin the tour, or select Replay tour."
+        );
+
+        // Hide settlement and POI labels while keeping roads.
+        const hiddenLabelPatterns = [
+          /settlement/i,
+          /place-label/i,
+          /country-label/i,
+          /state-label/i,
+          /poi-label/i,
+          /airport-label/i,
+          /transit-label/i
+        ];
+
+        for (const layer of map.getStyle().layers || []) {
+          if (
+            layer.type === "symbol" &&
+            hiddenLabelPatterns.some((pattern) =>
+              pattern.test(layer.id)
+            )
+          ) {
+            map.setLayoutProperty(
+              layer.id,
+              "visibility",
+              "none"
+            );
+          }
+        }
+
+        // Subtle atmosphere for the monochrome globe.
+        try {
+          map.setFog({
+            color: "#edf0f0",
+            "high-color": "#f0f2f3",
+            "space-color": "#e7ebed",
+            "horizon-blend": 0.16
+          });
+        } catch (error) {
+          console.warn(
+            "Atmosphere styling unavailable.",
+            error
+          );
+        }
+
+        // Resize the map when the embedding container changes.
+        if ("ResizeObserver" in window) {
+          resizeObserver = new ResizeObserver(() => {
+            map.resize();
+          });
+
+          resizeObserver.observe(mapElement);
+        } else {
+          window.addEventListener("resize", () => {
+            map.resize();
+          });
+        }
+
+        if (prefersReducedMotion) {
+          started = true;
+          showCampImmediately();
+        } else {
+          watchVisibility();
+        }
+      });
+
+      map.on("error", (event) => {
+        console.warn(
+          "Mapbox map warning:",
+          event.error || event
+        );
+      });
+    })();
   </script>
 </body>
 </html>
